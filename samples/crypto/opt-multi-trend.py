@@ -3,6 +3,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import argparse
 import datetime
+import optuna
 
 # The above could be sent to an independent module
 import backtrader as bt
@@ -140,18 +141,29 @@ class MultiTrendStrategyTwoGroups(bt.Strategy):
             if abs(self.target_size - position.size) > self.buffer_n:
                 self.order_target_size(target=self.target_size)
 
+def runstrategy(trial):
+    sigma_period = trial.suggest_int('sigma_period', 30, 100, step=2)
+    annal_scale = trial.suggest_int('annal_scale', 8, 32, step=2)
+    fdm_scale = trial.suggest_float('fdm_scale', 1.0, 1.1, step=0.01)
+    target_risk = trial.suggest_float('target_risk', 0.1, 0.3, step=0.01)
+    buffer_n = trial.suggest_float('buffer_n', 0.05, 0.3, step=0.01)
+    ewmac1 = trial.suggest_int('ewmac1', 4, 16, step=1)
+    ewmac2 = trial.suggest_int('ewmac2', 8, 32, step=1)
+    ewmac1_forcast_scalar = trial.suggest_float('ewmac1_forcast_scalar', 3.10, 5.10, step=0.1)
+    ewmac2__forcast_scalar = trial.suggest_float('ewmac2__forcast_scalar', 1.79, 3.79, step=0.1)
+    cap_max = trial.suggest_int('cap_max', 10, 30, step=1)
+    cap_min = trial.suggest_int('cap_min', -10, -30, step=1)
 
-
-def runstrategy():
-    args = parse_args()
     cerebro = bt.Cerebro()
 
-    fromdate = datetime.datetime.strptime(args.fromdate, '%Y-%m-%d')
-    todate = datetime.datetime.strptime(args.todate, '%Y-%m-%d')
+    fromdate = datetime.datetime.strptime('2020-01-01', '%Y-%m-%d')
+    todate = datetime.datetime.strptime('2024-12-31', '%Y-%m-%d')
 
     # Create the 1st data
     data = btfeeds.GenericCSVData(
-        dataname=args.data,
+        dataname='D:\\open_source\\backtrader\\datas'
+                                '\\binance\\data\\spot\\final\\klines'
+                                '\\BTCUSDT\\4h\\BTCUSDT-4h.csv',
         fromdate=fromdate,
         todate=todate,
         dtformat=('%Y-%m-%d %H:%M:%S'),
@@ -166,7 +178,19 @@ def runstrategy():
     )
 
     cerebro.adddata(data)
-    cerebro.addstrategy(MultiTrendStrategyTwoGroups)
+    cerebro.addstrategy(MultiTrendStrategyTwoGroups,
+                        sigma_period=sigma_period,
+                        annal_scale=annal_scale,
+                        fdm_scale=fdm_scale,
+                        target_risk=target_risk,
+                        buffer_n=buffer_n,
+                        ewmac1=ewmac1,
+                        ewmac2=ewmac2,
+                        ewmac1_forcast_scalar=ewmac1_forcast_scalar,
+                        ewmac2__forcast_scalar=ewmac2__forcast_scalar,
+                        cap_max=cap_max,
+                        cap_min=cap_min
+                        )
     cerebro.broker.setcash(10000)
 
     cerebro.broker.setcommission(commission=0.0005,
@@ -176,41 +200,27 @@ def runstrategy():
 
     cerebro.broker.set_slippage_perc(perc=0.00001)
 
-    cerebro.addanalyzer(SQN)
-    cerebro.addanalyzer(TradeAnalyzer)
-    cerebro.addanalyzer(DrawDown)
-    cerebro.addanalyzer(IndicatorAnalyzer)
-    cerebro.addanalyzer(AnnualReturn)
+    cerebro.addanalyzer(SQN, _name="sqn")
+    # cerebro.addanalyzer(TradeAnalyzer, _name="tradeanalyzer")
+    # cerebro.addanalyzer(DrawDown)
+    # cerebro.addanalyzer(AnnualReturn)
 
-    cerebro.addwriter(bt.WriterFile, out="D:\\open_source\\backtrader\\samples\\crypto\\multi_trend.log")
+    cerebro.addwriter(bt.WriterFile, out="D:\\open_source\\backtrader\\samples\\crypto\\multi_trend_{}".format(\
+        datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
 
     result = cerebro.run()
     sqn = result[0].analyzers.sqn.get_analysis()
+    # print("sqn {}".format(sqn))
+    # tradeanalyzer = result[0].analyzers.tradeanalyzer.get_analysis()
+    # print("tradeanalyzer {}".format(tradeanalyzer))
+    return sqn.sqn
 
-    print("sqn {}".format(sqn))
-    return sqn
-
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(description='TimeReturn')
-
-    parser.add_argument('--data', '-d',
-                        default='D:\\open_source\\backtrader\\datas'
-                                '\\binance\\data\\spot\\final\\klines'
-                                '\\BTCUSDT\\4h\\BTCUSDT-4h.csv',
-                        help='data to add to the system')
-
-    parser.add_argument('--fromdate', '-f',
-                        default='2020-01-01',
-                        help='Starting date in YYYY-MM-DD format')
-
-    parser.add_argument('--todate', '-t',
-                        default='2024-12-31',
-                        help='Starting date in YYYY-MM-DD format')
-
-    return parser.parse_args()
+def run_opt():
+    study = optuna.create_study(direction='maximize')
+    study.optimize(runstrategy, n_trials=10000)
+    print(study.best_params)
+    print(study.best_value)
 
 
 if __name__ == '__main__':
-    runstrategy()
+    run_opt()
