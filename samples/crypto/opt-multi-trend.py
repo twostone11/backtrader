@@ -152,7 +152,7 @@ def runstrategy(trial):
     ewmac1_forcast_scalar = trial.suggest_float('ewmac1_forcast_scalar', 3.10, 5.10, step=0.1)
     ewmac2__forcast_scalar = trial.suggest_float('ewmac2__forcast_scalar', 1.79, 3.79, step=0.1)
     cap_max = trial.suggest_int('cap_max', 10, 30, step=1)
-    cap_min = trial.suggest_int('cap_min', -10, -30, step=1)
+    cap_min = trial.suggest_int('cap_min', -13, -10, step=1)
 
     cerebro = bt.Cerebro()
 
@@ -205,12 +205,12 @@ def runstrategy(trial):
     # cerebro.addanalyzer(DrawDown)
     # cerebro.addanalyzer(AnnualReturn)
 
-    cerebro.addwriter(bt.WriterFile, out="D:\\open_source\\backtrader\\samples\\crypto\\multi_trend_{}".format(\
-        datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
+    # cerebro.addwriter(bt.WriterFile, out="D:\\open_source\\backtrader\\samples\\crypto\\multi_trend_{}".format(\
+    #     datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')))
 
     result = cerebro.run()
     sqn = result[0].analyzers.sqn.get_analysis()
-    # print("sqn {}".format(sqn))
+    print("sqn {}".format(sqn))
     # tradeanalyzer = result[0].analyzers.tradeanalyzer.get_analysis()
     # print("tradeanalyzer {}".format(tradeanalyzer))
     return sqn.sqn
