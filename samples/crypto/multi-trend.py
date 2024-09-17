@@ -12,6 +12,20 @@ from backtrader.analyzers import (SQN, AnnualReturn, TimeReturn, SharpeRatio,
                                   TradeAnalyzer, DrawDown)
 from backtrader.utils import AutoOrderedDict, AutoDict
 
+class MarginAnalyzer(bt.Analyzer):
+    def create_analysis(self):
+        self.rets = AutoOrderedDict()
+
+    def stop(self):
+        super(MarginAnalyzer, self).stop()
+        self.rets._close()
+
+    def notify_order(self, order):
+        if order.status == order.Margin:
+            self.rets.status = order.getstatusname()
+            self.rets.datetime =  datetime.datetime.fromtimestamp(order.created.dt).strftime('%Y-%m-%d %H:%M:%S')
+            self.rets.size = order.created.size
+
 class IndicatorAnalyzer(bt.Analyzer):
     def create_analysis(self):
         self.rets = AutoOrderedDict()
@@ -74,16 +88,16 @@ class IndicatorAnalyzer(bt.Analyzer):
 
 class MultiTrendStrategyTwoGroups(bt.Strategy):
     params = dict(
-        sigma_period=84,
+        sigma_period=82,
         annal_scale=16,
         fdm_scale=1.09,
-        target_risk=0.46,
+        target_risk=0.3, #have great impact on return
         buffer_n=0.3,
         ewmac1=2,
         ewmac2=7,
         ewmac1_forcast_scalar = 3.9,
-        ewmac2__forcast_scalar=3.49,
-        cap_max=14,
+        ewmac2__forcast_scalar=3.59,
+        cap_max=15,
         cap_min=-11
     )
 
@@ -181,6 +195,7 @@ def runstrategy():
     cerebro.addanalyzer(DrawDown, _name="drawdown")
     #cerebro.addanalyzer(IndicatorAnalyzer, _name="indicator")
     cerebro.addanalyzer(AnnualReturn, _name="annual")
+    cerebro.addanalyzer(MarginAnalyzer, _name="margin")
 
     cerebro.addwriter(bt.WriterFile, out="D:\\open_source\\backtrader\\samples\\crypto\\multi_trend.log")
 
@@ -199,6 +214,9 @@ def runstrategy():
 
     annual = result[0].analyzers.annual.get_analysis()
     print("annual {}".format(annual))
+
+    margin = result[0].analyzers.margin.get_analysis()
+    print("margin {}".format(margin))
 
     return sqn
 
