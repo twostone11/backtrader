@@ -129,15 +129,15 @@ def runstrategy(trial):
 
     cerebro.adddata(data)
     cerebro.addstrategy(MultiTrendStrategyTwoGroups,
-                        sigma_period=sigma_period,
-                        target_risk=target_risk,
-                        buffer_n=buffer_n,
-                        ewmac1=ewmac1,
-                        ewmac2=ewmac2,
-                        ewmac1_forcast_scalar=ewmac1_forcast_scalar,
-                        ewmac2_forcast_scalar=ewmac2_forcast_scalar,
-                        cap_max=cap_max,
-                        cap_min=cap_min
+                        sigma_period=92,
+                        target_risk=0.3,
+                        buffer_n=0.24,
+                        ewmac1=2,
+                        ewmac2=26,
+                        ewmac1_forcast_scalar=3.7,
+                        ewmac2_forcast_scalar=5.1,
+                        cap_max=29,
+                        cap_min=-10
                         )
     cerebro.broker.setcash(10000)
 
@@ -176,7 +176,7 @@ def runstrategy(trial):
 
 def run_opt():
     study = optuna.create_study(direction='maximize')
-    study.optimize(runstrategy, n_trials=10000)
+    study.optimize(runstrategy, n_trials=1)
     print(study.best_params)
     print(study.best_value)
 

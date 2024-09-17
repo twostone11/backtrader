@@ -89,14 +89,12 @@ class IndicatorAnalyzer(bt.Analyzer):
 class MultiTrendStrategyTwoGroups(bt.Strategy):
     params = dict(
         sigma_period=82,
-        annal_scale=16,
-        fdm_scale=1.09,
-        target_risk=0.4, #have great impact on return
+        target_risk=0.3, #have great impact on return
         buffer_n=0.3,
         ewmac1=2,
         ewmac2=7,
         ewmac1_forcast_scalar = 3.9,
-        ewmac2__forcast_scalar=3.59,
+        ewmac2_forcast_scalar=3.59,
         cap_max=15,
         cap_min=-11
     )
@@ -114,7 +112,7 @@ class MultiTrendStrategyTwoGroups(bt.Strategy):
         self.sigma_p = btind.StandardDeviation(self.daily_return, movav=btind.MovAv.EMA, period=self.p.sigma_period)
         self.daily_return_pct = bt.DivByZero(self.daily_return, self.data.close(-1))
         self.sigma_t_daily = btind.StandardDeviation(self.daily_return_pct, movav=btind.MovAv.EMA, period=self.p.sigma_period)
-        self.sigma_t = self.sigma_t_daily * self.p.annal_scale
+        self.sigma_t = self.sigma_t_daily * 16
         self.ewma1_fast = btind.MovAv.EMA(self.data.close, period=self.p.ewmac1)
         self.ewma1_slow = btind.MovAv.EMA(self.data.close, period=self.p.ewmac1 * 4)
         self.raw_ewmac1_forcast = (self.ewma1_fast - self.ewma1_slow) / self.sigma_p
@@ -125,12 +123,12 @@ class MultiTrendStrategyTwoGroups(bt.Strategy):
         self.ewma2_fast = btind.MovAv.EMA(self.data.close, period=self.p.ewmac2)
         self.ewma2_slow = btind.MovAv.EMA(self.data.close, period=self.p.ewmac2 * 4)
         self.raw_ewmac2_forcast = (self.ewma2_fast - self.ewma2_slow) / self.sigma_p
-        self.scaled_ewmac2_forcast = self.raw_ewmac2_forcast * self.p.ewmac2__forcast_scalar
+        self.scaled_ewmac2_forcast = self.raw_ewmac2_forcast * self.p.ewmac2_forcast_scalar
         self.avg_scaled_ewmac2_forcast = btind.MovAv.SMA(self.scaled_ewmac2_forcast, period=32)
         self.capped_ewmac2_forcast = bt.Max(bt.Min(self.scaled_ewmac2_forcast, self.p.cap_max), self.p.cap_min)
 
         self.raw_combined_forcast = (self.capped_ewmac1_forcast + self.capped_ewmac2_forcast) / 2.0
-        self.scaled_combined_forcast = self.raw_combined_forcast * self.p.fdm_scale
+        self.scaled_combined_forcast = self.raw_combined_forcast
         self.capped_combined_forcast = bt.Max(bt.Min(self.scaled_combined_forcast, self.p.cap_max), self.p.cap_min)
         self.capital = 0.0
         self.target_size = 0.0
@@ -180,7 +178,17 @@ def runstrategy():
     )
 
     cerebro.adddata(data)
-    cerebro.addstrategy(MultiTrendStrategyTwoGroups)
+    cerebro.addstrategy(MultiTrendStrategyTwoGroups,
+                        sigma_period=92,
+                        target_risk=0.3,
+                        buffer_n=0.24,
+                        ewmac1=2,
+                        ewmac2=26,
+                        ewmac1_forcast_scalar=3.7,
+                        ewmac2_forcast_scalar=5.1,
+                        cap_max=29,
+                        cap_min=-10
+                        )
     cerebro.broker.setcash(10000)
 
     cerebro.broker.setcommission(commission=0.0005,
