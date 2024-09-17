@@ -74,17 +74,17 @@ class IndicatorAnalyzer(bt.Analyzer):
 
 class MultiTrendStrategyTwoGroups(bt.Strategy):
     params = dict(
-        sigma_period=72,
+        sigma_period=84,
         annal_scale=16,
-        fdm_scale=1.03,
-        target_risk=0.2,
-        buffer_n=0.17,
-        ewmac1=4,
-        ewmac2=8,
-        ewmac1_forcast_scalar = 4.10,
-        ewmac2__forcast_scalar=2.79,
-        cap_max=20,
-        cap_min=-20
+        fdm_scale=1.09,
+        target_risk=0.46,
+        buffer_n=0.3,
+        ewmac1=2,
+        ewmac2=7,
+        ewmac1_forcast_scalar = 3.9,
+        ewmac2__forcast_scalar=3.49,
+        cap_max=14,
+        cap_min=-11
     )
 
     # EWMAC2 EWMAC4 EWMAC8 EWMAC16 EWMAC32 EWMAC64
@@ -176,18 +176,30 @@ def runstrategy():
 
     cerebro.broker.set_slippage_perc(perc=0.00001)
 
-    cerebro.addanalyzer(SQN)
-    cerebro.addanalyzer(TradeAnalyzer)
-    cerebro.addanalyzer(DrawDown)
-    cerebro.addanalyzer(IndicatorAnalyzer)
-    cerebro.addanalyzer(AnnualReturn)
+    cerebro.addanalyzer(SQN, _name="sqn")
+    cerebro.addanalyzer(TradeAnalyzer, _name="trade")
+    cerebro.addanalyzer(DrawDown, _name="drawdown")
+    #cerebro.addanalyzer(IndicatorAnalyzer, _name="indicator")
+    cerebro.addanalyzer(AnnualReturn, _name="annual")
 
     cerebro.addwriter(bt.WriterFile, out="D:\\open_source\\backtrader\\samples\\crypto\\multi_trend.log")
 
     result = cerebro.run()
     sqn = result[0].analyzers.sqn.get_analysis()
 
+    print("value {}".format(cerebro.broker.getvalue()))
+
     print("sqn {}".format(sqn))
+
+    trade = result[0].analyzers.trade.get_analysis()
+    print("trade {}".format(trade))
+
+    drawdown = result[0].analyzers.drawdown.get_analysis()
+    print("drawdown {}".format(drawdown))
+
+    annual = result[0].analyzers.annual.get_analysis()
+    print("annual {}".format(annual))
+
     return sqn
 
 
