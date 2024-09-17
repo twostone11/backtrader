@@ -1,0 +1,1 @@
+{'sigma_period': 82, 'annal_scale': 8, 'fdm_scale': 1.09, 'target_risk': 0.23, 'buffer_n': 0.3, 'ewmac1': 2, 'ewmac2': 7, 'ewmac1_forcast_scalar': 3.9000000000000004, 'ewmac2__forcast_scalar': 3.59, 'cap_max': 15, 'cap_min': -11}
