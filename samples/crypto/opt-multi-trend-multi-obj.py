@@ -172,7 +172,7 @@ def runstrategy(trial):
 
 def run_opt():
     sampler = optuna.samplers.TPESampler()
-    study = optuna.create_study(study_name='multi-obj',
+    study = optuna.create_study(study_name='multi-obj-fdm-scale',
                                 sampler=sampler,
                                 directions=["maximize", "maximize", "minimize"],
                                 storage='sqlite:///multi-obj-fdm-scale.db')
