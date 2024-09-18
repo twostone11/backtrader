@@ -96,7 +96,7 @@ class MultiTrendStrategyTwoGroups(bt.Strategy):
 
 def runstrategy(trial):
     sigma_period = trial.suggest_int('sigma_period', 30, 100, step=2)
-    fdm_scale = trial.suggest_int('fdm_scale', 1.00, 1.13, step=0.01)
+    fdm_scale = trial.suggest_float('fdm_scale', 1.00, 1.13, step=0.01)
     target_risk = trial.suggest_float('target_risk', 0.1, 0.4, step=0.02)
     buffer_n = trial.suggest_float('buffer_n', 0.05, 0.3, step=0.01)
     ewmac1 = trial.suggest_int('ewmac1', 2, 16, step=1)
@@ -175,7 +175,7 @@ def run_opt():
     study = optuna.create_study(study_name='multi-obj',
                                 sampler=sampler,
                                 directions=["maximize", "maximize", "minimize"],
-                                storage='sqlite:///multi-obj.db')
+                                storage='sqlite:///multi-obj-fdm-scale.db')
     study.optimize(runstrategy, n_trials=10000)
     print(study.best_params)
     print(study.best_value)
