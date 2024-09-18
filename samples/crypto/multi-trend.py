@@ -9,7 +9,7 @@ import backtrader as bt
 import backtrader.feeds as btfeeds
 import backtrader.indicators as btind
 from backtrader.analyzers import (SQN, AnnualReturn, TimeReturn, SharpeRatio,
-                                  TradeAnalyzer, DrawDown)
+                                  TradeAnalyzer, DrawDown, Transactions)
 from backtrader.utils import AutoOrderedDict, AutoDict
 
 class MarginAnalyzer(bt.Analyzer):
@@ -188,7 +188,7 @@ def runstrategy():
                                  stocklike=True,
                                  leverage=10)
 
-    cerebro.broker.set_slippage_perc(perc=0.00001)
+    cerebro.broker.set_slippage_perc(perc=0.0001)
 
     cerebro.addanalyzer(SQN, _name="sqn")
     cerebro.addanalyzer(TradeAnalyzer, _name="trade")
@@ -196,6 +196,8 @@ def runstrategy():
     cerebro.addanalyzer(IndicatorAnalyzer, _name="indicator")
     cerebro.addanalyzer(AnnualReturn, _name="annual")
     cerebro.addanalyzer(MarginAnalyzer, _name="margin")
+    cerebro.addanalyzer(Transactions, _name="transactions")
+
 
     cerebro.addwriter(bt.WriterFile, out="D:\\open_source\\backtrader\\samples\\crypto\\multi_trend.log")
 
@@ -217,6 +219,8 @@ def runstrategy():
 
     margin = result[0].analyzers.margin.get_analysis()
     print("margin {}".format(margin))
+
+
 
     return sqn
 

@@ -169,7 +169,10 @@ def runstrategy(trial):
 
 def run_opt():
     sampler = optuna.samplers.TPESampler()
-    study = optuna.create_study(sampler=sampler, directions=["maximize", "maximize", "minimize"])
+    study = optuna.create_study(study_name='multi-obj',
+                                sampler=sampler,
+                                directions=["maximize", "maximize", "minimize"],
+                                storage='sqlite:///multi-obj.db')
     study.optimize(runstrategy, n_trials=10000)
     print(study.best_params)
     print(study.best_value)
